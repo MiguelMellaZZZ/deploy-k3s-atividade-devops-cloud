@@ -29,7 +29,7 @@ jobs:
         kubectl apply -f nginx-final-deploy.yaml
         kubectl apply -f final-service.yaml
 
-    # Passo 3: Força o ConfigMap a ser recarregado (mesmo sem rebuild da imagem)
+    # Passo 3: Força o ConfigMap a ser recarregado (mesmo sem rebuild da imagem)AA
     - name: Force Rollout Restart for ConfigMap Update
       run: |
         kubectl rollout restart deployment final-site-deployment

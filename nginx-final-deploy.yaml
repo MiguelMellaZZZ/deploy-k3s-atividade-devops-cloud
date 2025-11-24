@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: final-site-deployment
+  labels:
+    app: custom-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: custom-site
+  template:
+    metadata:
+      labels:
+        app: custom-site
+    spec:
+      # Define o ConfigMap como um volume
+      volumes:
+        - name: site-content
+          configMap:
+            name: nginx-custom-page  # **Nome do ConfigMap que contém o index.html**
+      containers:
+        - name: nginx
+          image: nginx:1.26.0       # Usando a versão atualizada
+          ports:
+            - containerPort: 80
+          # Monta o volume no local onde o Nginx busca o index.html
+          volumeMounts:
+            - name: site-content
+              mountPath: /usr/share/nginx/html

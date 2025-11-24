@@ -1,0 +1,35 @@
+name: Deploy Web App to K3s
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Kubeconfig (Conexão Segura)
+      run: |
+        # Usaremos o kubectl diretamente. O segredo AZURE_KUBE_CONFIG deve ser criado no GitHub Secrets.
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.AZURE_KUBE_CONFIG }}" > $HOME/.kube/config
+
+    - name: Wait for K3s to be Ready
+      run: |
+        kubectl wait --for=condition=Ready node/rg-projeto-mn-k3s --timeout=5m
+
+    - name: Apply Kubernetes Deployment
+      run: |
+        # Aplica o novo manifesto de Deployment
+        kubectl apply -f nginx-final-deploy.yaml
+
+    - name: Force Rollout Restart
+      run: |
+        # Força o K3s a usar a nova configuração (simulando a mudança do index.html)
+        kubectl rollout restart deployment final-site-deployment
+        kubectl rollout status deployment final-site-deployment --timeout=5m

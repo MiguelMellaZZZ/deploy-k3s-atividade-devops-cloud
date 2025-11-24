@@ -23,7 +23,7 @@ jobs:
       run: |
         kubectl wait --for=condition=Ready node/rg-projeto-mn-k3s --timeout=5m
 
-    # Passo 2: Aplica os manifestos de Deployment e Service
+    # Passo 2: Aplica os manifestos de Deployment e Servicess
     - name: Apply Kubernetes Manifests
       run: |
         kubectl apply -f nginx-final-deploy.yaml

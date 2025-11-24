@@ -1,0 +1,36 @@
+name: Deploy Web App to K3s
+
+on:
+  push:
+    branches:
+      - main  # Altere para a branch correta, se for diferente de 'main'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Passo 1: Configura o Kubeconfig para conectar no seu K3s na VM
+    - name: Setup Kubeconfig (Conexão Segura)
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.AZURE_KUBE_CONFIG }}" > $HOME/.kube/config
+
+    - name: Wait for K3s to be Ready
+      run: |
+        kubectl wait --for=condition=Ready node/rg-projeto-mn-k3s --timeout=5m
+
+    # Passo 2: Aplica os manifestos de Deployment e Servicess
+    - name: Apply Kubernetes Manifests
+      run: |
+        kubectl apply -f nginx-final-deploy.yaml
+        kubectl apply -f final-service.yaml
+
+    # Passo 3: Força o ConfigMap a ser recarregado (mesmo sem rebuild da imagem)AA
+    - name: Force Rollout Restart for ConfigMap Update
+      run: |
+        kubectl rollout restart deployment final-site-deployment
+        kubectl rollout status deployment final-site-deployment --timeout=5m
